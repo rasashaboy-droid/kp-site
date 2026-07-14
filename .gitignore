@@ -1,0 +1,5 @@
+# dev-бэкапы и системный мусор
+kp.backup.html
+.DS_Store
+Thumbs.db
+.playwright-mcp/

@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Бриф · генератор КП</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#fff; --border:#e3e8ef; --muted:#697586; --fg:#121926;
+    --primary:#2f6bff; --primary-d:#1f4fd6; --ok:#0a8f5b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1040px;margin:0 auto;padding:24px 16px 120px}
+  header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:8px}
+  h1{font-size:22px;margin:0;letter-spacing:-.02em}
+  .sub{color:var(--muted);margin:.35em 0 0;max-width:640px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:16px;
+    box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 14px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  @media(max-width:640px){.grid,.grid-3{grid-template-columns:1fr}}
+  .full{grid-column:1/-1}
+  label{display:block;font-weight:600;font-size:12.5px;margin-bottom:5px;color:#344054}
+  .hint{font-weight:400;color:var(--muted)}
+  input,textarea{width:100%;border:1px solid var(--border);border-radius:10px;padding:9px 11px;font:inherit;
+    color:var(--fg);background:#fff;outline:none;transition:border-color .15s,box-shadow .15s}
+  input:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(47,107,255,.15)}
+  textarea{resize:vertical;min-height:74px}
+  input[type=number]{text-align:right;font-variant-numeric:tabular-nums}
+  input[readonly]{background:#f4f6f9;color:var(--muted);cursor:not-allowed;border-style:dashed}
+  .bar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);
+    border-top:1px solid var(--border);padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;z-index:10}
+  button{font:inherit;font-weight:600;border-radius:10px;padding:11px 18px;border:1px solid transparent;cursor:pointer;transition:.15s}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{background:var(--primary-d)}
+  .btn-ghost{background:#fff;color:var(--fg);border-color:var(--border)}
+  .btn-ghost:hover{border-color:#c3ccd9}
+  .note{color:var(--muted);font-size:12.5px;max-width:340px}
+  .toast{position:fixed;bottom:78px;left:50%;transform:translateX(-50%);background:var(--ok);color:#fff;
+    padding:9px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .25s;font-weight:600;z-index:20}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Бриф → персональное КП</h1>
+      <p class="sub">Заполните ответы клиента во время созвона и нажмите «Открыть КП» — сформируется страница под этого клиента. Поля предзаполнены примером, просто правьте нужное.</p>
+    </div>
+  </header>
+
+  <form id="f">
+    <div class="card">
+      <h2>Клиент и ниша</h2>
+      <div class="grid">
+        <div><label>Клиент / компания <span class="hint">(в заголовке вкладки)</span></label><input name="clientName" placeholder="ООО «Пример»"></div>
+        <div><label>Ниша <span class="hint">(в родительном: «продажи …»)</span></label><input name="niche"></div>
+        <div><label>Город / гео</label><input name="city"></div>
+        <div><label>Каналы</label><input name="channels"></div>
+        <div class="full"><label>Цель <span class="hint">(«…чтобы <b>цель</b> без хаоса…»)</span></label><textarea name="goal"></textarea></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Точка А — сейчас</h2>
+      <div class="grid-3">
+        <div><label>Заявки / лиды сейчас</label><input type="number" name="currentLeads"></div>
+        <div><label>Продажи / договоры сейчас</label><input type="number" name="currentSales"></div>
+        <div><label>Средний чек, ₽ <span class="hint">(общий для А, Б и экономики)</span></label><input type="number" name="averageCheck" step="1000"></div>
+      </div>
+      <div class="full" style="margin-top:14px"><label>Описание точки А</label><textarea name="pointA"></textarea></div>
+      <div class="full" style="margin-top:14px"><label>Что мешает прийти из А в Б <span class="hint">(боли)</span></label><textarea name="pains"></textarea></div>
+    </div>
+
+    <div class="card">
+      <h2>Точка Б — цель</h2>
+      <div class="grid-3">
+        <div><label>План заявок <span class="hint">(= «План заявок» в экономике)</span></label><input type="number" name="targetLeads"></div>
+        <div><label>План продаж</label><input type="number" name="targetSales"></div>
+        <div><label>Целевая выручка, ₽ <span class="hint">(авто: чек × план продаж)</span></label><input type="number" name="targetRevenue" readonly tabindex="-1"></div>
+      </div>
+      <div class="full" style="margin-top:14px"><label>Описание точки Б</label><textarea name="pointB"></textarea></div>
+    </div>
+
+    <div class="card">
+      <h2>Экономика запуска</h2>
+      <div class="grid-3">
+        <div><label>Рекламный бюджет, ₽ <span class="hint">(фиксированный)</span></label><input type="number" name="adBudget" step="1000"></div>
+        <div><label>Конверсия в встречу / замер, %</label><input type="number" name="leadToMeeting"></div>
+        <div><label>Конверсия в оплату, %</label><input type="number" name="meetingToSale"></div>
+      </div>
+      <p class="note" style="margin:12px 0 0">Бюджет фиксированный и не меняется в калькуляторе. Цена заявки при этом = бюджет ÷ план заявок ≈ <b id="cpl">—</b>.</p>
+    </div>
+
+    <div class="card">
+      <h2>Стоимость и призыв</h2>
+      <div class="grid">
+        <div><label>Стоимость работ, ₽</label><input type="number" name="price" step="1000"></div>
+        <div class="full"><label>Финальный призыв <span class="hint">(подзаголовок нижнего блока)</span></label><textarea name="finalCta"></textarea></div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="bar">
+  <span class="note">Данные сохраняются в этом браузере. «Ссылка» работает, когда сайт выложен онлайн.</span>
+  <button class="btn-ghost" type="button" id="reset">Сбросить к примеру</button>
+  <button class="btn-ghost" type="button" id="link">Скопировать ссылку</button>
+  <button class="btn-primary" type="button" id="open">Открыть КП →</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var DEFAULTS = {
+    clientName:"", niche:"продажи бань-бочек", city:"по всей России",
+    channels:"Квиз-лендинг + Яндекс Директ + Авито + Догревающий чат-бот + Аналитика",
+    goal:"получать стабильный и управляемый поток заявок на бани-бочки с понятной стоимостью обращения, чтобы отделу продаж было с чем работать каждый день",
+    pains:"Мало входящих обращений и нет стабильного управляемого потока; непонятно, во сколько обходится заявка и окупается ли реклама; сомнение, что маркетинг сработает именно для этой компании; опыт неудачных запусков с фрилансерами и подрядчиками без специализации; страх слить бюджет на нецелевые лиды; маркетинг откладывается из-за других расходов и кажущейся несрочности.",
+    pointA:"Сейчас поток обращений нестабилен: заявки приходят от случая к случаю, нет прозрачной цены заявки и понимания, какие каналы реально приносят клиентов. Из-за этого продажи проседают, а рекламный бюджет расходуется без чёткой картины эффективности.",
+    pointB:"Настроенная система привлечения: квиз-страница принимает трафик, реклама в Яндекс Директ и объявления на Авито дают ежедневные обращения, чат-бот догревает заявки, а аналитика показывает цену заявки и вклад каждого канала. Ориентир — стабильный поток обращений и прозрачная картина эффективности вложений.",
+    currentLeads:20, currentSales:2, averageCheck:200000,
+    targetLeads:100, targetSales:5, targetRevenue:1000000,
+    adBudget:60000, leadToMeeting:25, meetingToSale:20,
+    price:49000,
+    finalCta:"Если всё ок — фиксируем запуск прямо на этом созвоне"
+  };
+  var NUM = {currentLeads:1,currentSales:1,averageCheck:1,targetLeads:1,targetSales:1,targetRevenue:1,adBudget:1,leadToMeeting:1,meetingToSale:1,price:1};
+  var form = document.getElementById("f");
+
+  function load(obj){
+    for(var k in DEFAULTS){
+      var el = form.elements[k];
+      if(el) el.value = (obj && obj[k]!=null && obj[k]!=="") ? obj[k] : DEFAULTS[k];
+    }
+    updDerived();
+  }
+  function collect(){
+    var d = {};
+    for(var k in DEFAULTS){
+      var el = form.elements[k];
+      if(!el) continue;
+      var v = el.value.trim();
+      d[k] = NUM[k] ? (Number(v)||0) : v;
+    }
+    return d;
+  }
+  function fmt(n){ return new Intl.NumberFormat("ru-RU").format(Math.round(n)); }
+  function updDerived(){
+    var d = collect();
+    // целевая выручка = средний чек × план продаж (авто)
+    form.elements.targetRevenue.value = Math.round((d.averageCheck||0) * (d.targetSales||0));
+    // цена заявки = бюджет ÷ план заявок (справочно)
+    var cpl = d.targetLeads ? Math.round(d.adBudget / d.targetLeads) : 0;
+    document.getElementById("cpl").textContent = fmt(cpl) + " ₽";
+  }
+  form.addEventListener("input", updDerived);
+
+  function toast(msg){
+    var t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+    setTimeout(function(){t.classList.remove("show");},1800);
+  }
+  function b64(str){ return btoa(unescape(encodeURIComponent(str))); }
+
+  // начальная загрузка: из localStorage если есть, иначе пример
+  var saved=null; try{ saved=JSON.parse(localStorage.getItem("kp_data")||"null"); }catch(e){}
+  load(saved);
+
+  document.getElementById("open").addEventListener("click", function(){
+    var d = collect();
+    localStorage.setItem("kp_data", JSON.stringify(d));
+    window.open("kp.html", "_blank");
+  });
+  document.getElementById("link").addEventListener("click", function(){
+    var d = collect();
+    localStorage.setItem("kp_data", JSON.stringify(d));
+    var url = location.href.replace(/brief\.html.*$/, "kp.html") + "#data=" + encodeURIComponent(b64(JSON.stringify(d)));
+    navigator.clipboard.writeText(url).then(function(){ toast("Ссылка скопирована"); },
+      function(){ prompt("Скопируйте ссылку:", url); });
+  });
+  document.getElementById("reset").addEventListener("click", function(){
+    if(confirm("Сбросить все поля к примеру (бани-бочки)?")){ load(null); toast("Сброшено к примеру"); }
+  });
+})();
+</script>
+</body>
+</html>
